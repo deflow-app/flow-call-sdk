@@ -203,7 +203,7 @@ export function condExpToPn(exp:string):string[]|null{
 export function analyzeExp(exp:string):string[]|null {
     let b:boolean = /^(-?[√!]?(-?\d+\.\d+|-?\d+|-?\{\d\})\s?[+\-*\/^%]?\s*)+if\s+[\w\W]*\s+else\s+(-?[√!]?(-?\d+\.\d+|-?\d+|-?\{\d\})\s*[+\-*\/^%]?\s*)+$/.test(exp);
     if(!b) {    //非三目运算
-        let pnexp = expToPn(exp);
+        let pnexp = condExpToPn(exp);
         return pnexp ? pnexp.reverse() : null;
     }else{
         let segStack:string[] = []
@@ -265,9 +265,9 @@ export function transformToExp(pn:string[]):number[]{
 export function prepareExp(exp:string):number[]|null{
     if(exp){
         let tmpexp:string[] = analyzeExp(exp)!;
-        console.log(tmpexp);
+        console.log("exp:", exp, tmpexp);
         let rtn:number[] = transformToExp(tmpexp);
-        console.log(rtn);
+        console.log("exp:", exp, rtn);
         return rtn;
     }
     return null;
