@@ -1,7 +1,7 @@
 import { OpCodeDict, OpCode } from "../core/constant";
 
 /**
- * 处理表达式生成逆波兰式(后缀表达式)
+ * transform exp to Reverse Polish notation
  * @param exp 
  * @returns 
  */
@@ -50,7 +50,7 @@ export function expToRpn(exp:string):string[]|null{
 }
 
 /**
- * 处理表达式生成波兰式(前缀表达式)
+ * transform exp to Polish notation
  * @param exp 
  * @returns 
  */
@@ -98,7 +98,7 @@ export function expToPn(exp:string):string[]|null{
 }
 
 /**
- * 条件表达式生成逆波兰式
+ * transform conditional exp to Reverse Polish notation
  * @param exp 
  * @returns 
  */
@@ -147,7 +147,7 @@ export function condExpToRpn(exp:string):string[]|null{
 }
 
 /**
- * 条件表达式生成波兰式
+ * transform conditional exp to Polish notation
  * @param exp 
  * @returns 
  */
@@ -196,7 +196,7 @@ export function condExpToPn(exp:string):string[]|null{
 }
 
 /**
- * 解析表达式，生成原始数组
+ * analyze exp and generate string array
  * @param exp 
  * @returns 
  */
@@ -236,7 +236,7 @@ export function analyzeExp(exp:string):string[]|null {
 }
 
 /**
- * 转换原始数组中的符号
+ * transform to opcode list
  * @param pn 
  * @returns 
  */
