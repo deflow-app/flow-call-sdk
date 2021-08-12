@@ -10,7 +10,7 @@ export enum CallType{
 export interface CallInfo{
     callType:CallType;
     seq:number;
-    callCondition:number[];
+    callCondition:BigNumberish[];
     targetContract:string;
     callData:string;
     sendEthValue:BigNumberish;
@@ -40,7 +40,7 @@ export interface SetVariableOperation {
     variableIdToSet:number;
     triggerType:TriggerType;
     triggerId:number; //callId or operationId according to the trigger type
-    valueExpression:number[];
+    valueExpression:BigNumberish[];
 }
 
 export interface ContractMethod{
