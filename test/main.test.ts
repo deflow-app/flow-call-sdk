@@ -1,4 +1,4 @@
-import {flowCall,ChainId, CHAIN_CONFIG,logger, TriggerType, OpCode, CallType, PARAMETER_ID_FOR_TOKEN_AMOUNT} from "../src";
+import {flowCall,ChainId, CHAIN_CONFIG,logger, TriggerType, OpCode, CallType, PARAMETER_ID_FOR_TOKEN_AMOUNT, flowCallSafe} from "../src";
 import flowCallAbi from "../src/core/FlowCall.json";
 import {Wallet} from '@ethersproject/wallet';
 import {JsonRpcProvider} from "@ethersproject/providers"
@@ -16,6 +16,7 @@ describe('Flow call test', () => {
         const provider=new JsonRpcProvider(CHAIN_CONFIG[chainId].rpcUrl);
         const wallet=new Wallet(key,provider);
         const tokenAddress="0x2ba27d69df06cc8b37ba8d2ff00afbf412e70e16";
+        // const tokenAddress="0x337610d27c682e347c9cd60bd4b3b107c9d34ddd";
         const senderAddress="0x0A8548Bf245c01eCDD95a2052B5f176888f14FaA";
         const flowCallAddress=CHAIN_CONFIG[chainId].contractAddress;
         const tokenContract=new Contract(tokenAddress,erc20,wallet);
@@ -132,7 +133,7 @@ describe('Flow call test', () => {
         // console.log(finalCallData);
        
         
-        const rpt=await flowCall([call1,call2,call3,call4],2,[op1,op2],wallet,chainId,eth);
+        const rpt=await flowCallSafe([call1,call2],2,[op1,op2],wallet,chainId,eth,[tokenAddress]);
     }),300000);
 
     it('main', (async () => {

@@ -6,9 +6,9 @@ export enum ChainId {
 
 export const CHAIN_CONFIG={
     [ChainId.BSCTESTNET]:{
-        rpcUrl:"https://data-seed-prebsc-1-s1.binance.org:8545",
-        contractAddress:"0xceaD52eC7A142A510F1d6202b152cEB986fd1366",
-        tokenReceiver:"0x5E2f34BF6EFC908fc0A820170B3713215B48C61c"
+        rpcUrl:"https://data-seed-prebsc-2-s1.binance.org:8545",
+        contractAddress:"0x456b82F1357754247e4de4106AdDe29F7d04E82c",
+        tokenReceiver:"0x4f81FE1c01C459b499753F2A9b7C68E29612FF42"
     },
     [ChainId.BSCMAINNET]:{
         rpcUrl:"https://bsc-dataseed4.ninicoin.io",
@@ -17,8 +17,8 @@ export const CHAIN_CONFIG={
     },
     [ChainId.HECOMAINNET]:{
         rpcUrl:"https://http-mainnet.hecochain.com",
-        contractAddress:"0xa50c60a1246Ee02506C822dDd631b9c4AAF85375",
-        tokenReceiver:"0xeb1212289bd739351EC85bd13e9cbDbfB9c3e762"
+        contractAddress:"0x06f1cae52A4032A8b3dbEebF9Fcc5D0b6d2B5fF0",
+        tokenReceiver:"0xBFD8Bc2B2ED16FC86C8a7F23F66768ae9D10B707"
     }
 };
 
