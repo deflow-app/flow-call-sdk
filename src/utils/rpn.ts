@@ -9,7 +9,7 @@ export function expToRpn(exp:string):string[]|null{
     let _precedence:{ [key: string]: number;} = {'√':99,'/': 2, '*': 2, '%': 2, '-': 1, '+': 1, '#': 0};
     let arrExp:Array<String>|null = splitExp(exp),
     expStack:string[] = [], opStack:string[] = [], opItem:string, stackItem:string;
-    console.log(arrExp);
+    // console.log(arrExp);
     if (arrExp == null) {
         return null;
     }
@@ -106,7 +106,7 @@ export function condExpToRpn(exp:string):string[]|null{
     let _precedence:{ [key: string]: number;} = {'√':99, '^':98, '!':90, '/':5, '*':5, '%':5, '-':3, '+':3, '>':2, '<':2, '&eq;':2, '&ne;':2, '&le;':2, '&ge;':2, 'or':1, 'and':1, '#':0};
     let arrExp:Array<String>|null = splitCondExp(exp),
     expStack:string[] = [], opStack:string[] = [], opItem:string, stackItem:string;
-    console.log(arrExp);
+    // console.log(arrExp);
     if (arrExp == null) {
         return null;
     }
@@ -265,9 +265,9 @@ export function transformToExp(pn:string[]):number[]{
 export function prepareExp(exp:string):number[]|null{
     if(exp){
         let tmpexp:string[] = analyzeExp(exp)!;
-        console.log("exp:", exp, tmpexp);
+        // console.log("exp:", exp, tmpexp);
         let rtn:number[] = transformToExp(tmpexp);
-        console.log("exp:", exp, rtn);
+        // console.log("exp:", exp, rtn);
         return rtn;
     }
     return null;
