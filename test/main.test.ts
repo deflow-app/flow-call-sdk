@@ -1,4 +1,4 @@
-import {flowCall,ChainId, CHAIN_CONFIG,logger, TriggerType, OpCode, CallType, PARAMETER_ID_FOR_TOKEN_AMOUNT, flowCallSafe} from "../src";
+import {flowCall,ChainId, CHAIN_CONFIG,logger, TriggerType, OpCode, CallType, PARAMETER_ID_FOR_TOKEN_AMOUNT, flowCallSafe, ADDRESS_NULL} from "../src";
 import flowCallAbi from "../src/core/FlowCall.json";
 import {Wallet} from '@ethersproject/wallet';
 import {JsonRpcProvider} from "@ethersproject/providers"
@@ -26,7 +26,7 @@ describe('Flow call test', () => {
         // logger.info("Approve successful!!!");
 
         const inter=new Interface(erc20);
-        const callData=inter.encodeFunctionData("balanceOf",[senderAddress]);
+        const callData=inter.encodeFunctionData("balanceOf",[ADDRESS_NULL]);
         logger.info("call data: "+callData);
         const call1={
             callType:CallType.callContract,
@@ -34,7 +34,12 @@ describe('Flow call test', () => {
             callData:callData,
             sendEthValue:0,
             seq:0,
-            variableParameters:[],
+            variableParameters:[
+                {
+                    parameterId:0,
+                    variableId:2
+                }
+            ],
             returnValuesCount:1,
             callCondition:[],
             tokenAmount:0
@@ -109,10 +114,10 @@ describe('Flow call test', () => {
         };
 
         const op0={
-            variableIdToSet:0,
-            triggerType:TriggerType.afterCall,
+            variableIdToSet:2,
+            triggerType:TriggerType.beforeAll,
             triggerId:0,
-            valueExpression:[OpCode.OPCODE_VAR,0]
+            valueExpression:[OpCode.OPCODE_CONST,senderAddress]
         };
         const op1={
             variableIdToSet:0,
@@ -133,7 +138,7 @@ describe('Flow call test', () => {
         // console.log(finalCallData);
        
         
-        const rpt=await flowCallSafe([call1,call2],2,[op1,op2],wallet,chainId,eth,[tokenAddress]);
+        const rpt=await flowCallSafe([call1,call2],3,[op0,op1,op2],wallet,chainId,eth,[tokenAddress]);
     }),300000);
 
     it('main', (async () => {

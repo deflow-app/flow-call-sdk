@@ -26,7 +26,8 @@ export interface ParameterFromVariable{
 
 export enum TriggerType{
     afterCall=0,
-    afterSetVariableOperation=1
+    afterSetVariableOperation=1,
+    beforeAll=2
 }
 
 export enum ContractAbiFragmentType{

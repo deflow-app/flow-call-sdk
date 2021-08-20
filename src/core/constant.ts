@@ -7,7 +7,7 @@ export enum ChainId {
 export const CHAIN_CONFIG={
     [ChainId.BSCTESTNET]:{
         rpcUrl:"https://data-seed-prebsc-2-s1.binance.org:8545",
-        contractAddress:"0x79C73E7384588dDD81A74b021216d9E20c8e1268",
+        contractAddress:"0xbdae6F51E195dB8eb05E49a99b159719BB9f7D2e",
         tokenReceiver:"0xb023921b683a4CaCd0E7A9FCE646E3d6Aea65Cd5"
     },
     [ChainId.BSCMAINNET]:{
@@ -17,7 +17,7 @@ export const CHAIN_CONFIG={
     },
     [ChainId.HECOMAINNET]:{
         rpcUrl:"https://http-mainnet.hecochain.com",
-        contractAddress:"0xa430ceBD47B3842F75f0ACD991D5828Beb01cb4c",
+        contractAddress:"0x9978cb06be92dBD1889f449F3eB9853c164B8BEF",
         tokenReceiver:"0xBFD8Bc2B2ED16FC86C8a7F23F66768ae9D10B707"
     }
 };
@@ -94,3 +94,5 @@ export const OpCodeDict:{[key:string]:OpCode}={
     'or':OpCode.OPCODE_OR,
     'and':OpCode.OPCODE_AND
 }
+
+export const ADDRESS_NULL = "0x0000000000000000000000000000000000000000";
