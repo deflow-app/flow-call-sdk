@@ -1,4 +1,5 @@
 import { OpCodeDict, OpCode } from "../core/constant";
+import { BigNumberish } from "@ethersproject/bignumber";
 
 /**
  * transform exp to Reverse Polish notation
@@ -240,33 +241,33 @@ export function analyzeExp(exp:string):string[]|null {
  * @param pn 
  * @returns 
  */
-export function transformToExp(pn:string[]):number[]{
-    let rtnExp:number[] = [];
+export function transformToExp(pn:string[]):BigNumberish[]{
+    let rtnExp:BigNumberish[] = [];
     if(!pn){
         return rtnExp;
     }
     for(let item of pn){
         if(item == 'if'){
-            rtnExp.push(OpCode.OPCODE_IF);
+            rtnExp.push(OpCode.OPCODE_IF.toString());
         }else if(isNumeric(item)){
-            rtnExp.push(OpCode.OPCODE_CONST);
-            rtnExp.push(Number(item));
+            rtnExp.push(OpCode.OPCODE_CONST.toString());
+            rtnExp.push(item.toString());
         }else if(isVar(item)){
-            rtnExp.push(OpCode.OPCODE_VAR);
+            rtnExp.push(OpCode.OPCODE_VAR.toString());
             let idx:string = item.substring(1, item.lastIndexOf('\}'));
-            rtnExp.push(Number(idx));
+            rtnExp.push(idx);
         }else if(isOperator(item)){
-            rtnExp.push(OpCodeDict[item]);
+            rtnExp.push(OpCodeDict[item].toString());
         }
     }
     return rtnExp;
 }
 
-export function prepareExp(exp:string):number[]|null{
+export function prepareExp(exp:string):BigNumberish[]|null{
     if(exp){
         let tmpexp:string[] = analyzeExp(exp)!;
         // console.log("exp:", exp, tmpexp);
-        let rtn:number[] = transformToExp(tmpexp);
+        let rtn:BigNumberish[] = transformToExp(tmpexp);
         // console.log("exp:", exp, rtn);
         return rtn;
     }
