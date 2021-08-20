@@ -4,6 +4,7 @@ import {Wallet} from '@ethersproject/wallet';
 import {JsonRpcProvider} from "@ethersproject/providers"
 import { hexlify, Interface } from "ethers/src.ts/utils";
 import erc20 from "./ERC20.json";
+import FLOWCALLHELPER from "../src/core/FlowCallHelper.json";
 import { Contract } from "@ethersproject/contracts";
 import { MaxUint256 } from "@ethersproject/constants";
 import { parseUnits, formatUnits,parseEther } from '@ethersproject/units'
@@ -158,4 +159,13 @@ describe('Flow call test', () => {
 
         console.log(ve);
     }), 300000);
+
+    it('test flow call helper', (async () => {
+        const chainId=ChainId.BSCTESTNET;
+        const provider=new JsonRpcProvider(CHAIN_CONFIG[chainId].rpcUrl);
+        const wallet=new Wallet(key,provider);
+        const flowcallhelper=new Contract('0x0c1851cFD78931Dd1bC8F5E0DaC4407439Fd61da',FLOWCALLHELPER, wallet);
+        let res = await flowcallhelper.getETHBalance("0x1a48f828F89b7a43bdF8AC784B73A5b622e1712E");
+        console.log(res);
+      }),600*1000);
 });
