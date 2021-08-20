@@ -8,17 +8,20 @@ export const CHAIN_CONFIG={
     [ChainId.BSCTESTNET]:{
         rpcUrl:"https://data-seed-prebsc-2-s1.binance.org:8545",
         contractAddress:"0xbdae6F51E195dB8eb05E49a99b159719BB9f7D2e",
-        tokenReceiver:"0xb023921b683a4CaCd0E7A9FCE646E3d6Aea65Cd5"
+        tokenReceiver:"0xb023921b683a4CaCd0E7A9FCE646E3d6Aea65Cd5",
+        flowCallHelper:"0x0c1851cFD78931Dd1bC8F5E0DaC4407439Fd61da"
     },
     [ChainId.BSCMAINNET]:{
         rpcUrl:"https://bsc-dataseed4.ninicoin.io",
         contractAddress:"",
-        tokenReceiver:""
+        tokenReceiver:"",
+        flowCallHelper:""
     },
     [ChainId.HECOMAINNET]:{
         rpcUrl:"https://http-mainnet.hecochain.com",
         contractAddress:"0x9978cb06be92dBD1889f449F3eB9853c164B8BEF",
-        tokenReceiver:"0xBFD8Bc2B2ED16FC86C8a7F23F66768ae9D10B707"
+        tokenReceiver:"0xBFD8Bc2B2ED16FC86C8a7F23F66768ae9D10B707",
+        flowCallHelper:"0xfAEA7F729E732C574D81007B811858457736EF96"
     }
 };
 
