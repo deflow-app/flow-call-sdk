@@ -5,11 +5,16 @@ import { ChainId, CHAIN_CONFIG } from "./constant";
 import { Contract, Signer } from "ethers";
 import { logger } from "../logger";
 import abi from "./FlowCall.json";
+import flowCallHelperAbi from "./FlowCallHelper.json";
 
 export * from "./constant";
 
 export function getFlowCallABI(){
     return abi;
+}
+
+export function getFlowCallHelperABI(){
+    return flowCallHelperAbi;
 }
 
 export async function flowCall(callList: CallInfo[], variableCount: number, setVariableOperationList: SetVariableOperation[],
