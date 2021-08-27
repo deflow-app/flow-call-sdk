@@ -1,4 +1,4 @@
-import { CallInfo, SetVariableOperation } from "../entities";
+import { CallInfo, SetVariableOpr as SetVariableOperation } from "../entities/contractModel";
 import { JsonRpcProvider, Provider } from "@ethersproject/providers"
 import { BigNumberish, BigNumber } from "@ethersproject/bignumber"
 import { ChainId, CHAIN_CONFIG } from "./constant";

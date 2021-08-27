@@ -1,6 +1,6 @@
 import { Result ,Interface} from "@ethersproject/abi";
 
-import {ContractMethod, ContractAbiFragmentType, ExternalCallInfo} from "../entities"
+import {ContractMethod, ContractAbiFragmentType, ExternalCallInfo} from "../entities/contractModel"
 
 let METHOD_NAME_MAP:{[key:string]:string} = {};
 

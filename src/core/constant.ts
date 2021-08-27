@@ -99,3 +99,47 @@ export const OpCodeDict:{[key:string]:OpCode}={
 }
 
 export const ADDRESS_NULL = "0x0000000000000000000000000000000000000000";
+
+export enum CallFuncParamType{
+    val="value",
+    var="variable",
+    const="constant"
+}
+
+export enum ConstantNames{
+    flowCallContract="flowCallContract",
+    senderAddress="senderAddress",
+    flowCallHelper="flowCallHelper",
+    inputWhenRun="inputWhenRun"
+}
+
+export const VariableNameForInputWhenRun="inputWhenRun";
+
+export enum SpecialParamNameForInputWhenRun{
+    tokenAmount="sp_tokenAmount",
+    contractAddr="sp_contractAddr"
+}
+
+
+export enum VariableType{
+    int="int",
+    boolean="boolean",
+    bytes="bytes",
+    address="address"
+}
+
+export enum EmitEventType{
+    SetVariable="SetVariable",
+    ExternalCall="ExternalCall"
+}
+
+export enum TokenApprovalResState {
+    fail="fail",
+    success="success",
+    noneed="noneed"
+}
+
+export enum TimeZone {
+    UTC="utc",
+    LOCAL="local"
+}

@@ -1,3 +1,3 @@
 export * from "./rpn";
 export * from "./contract";
-export * from "./ipfs";
+export * from "./encrypt";
