@@ -143,3 +143,13 @@ export enum TimeZone {
     UTC="utc",
     LOCAL="local"
 }
+
+export enum PubType{
+    TASK="task",
+    JOB="job"
+}
+
+export enum Source{
+    LOCAL="local",
+    REMOTE="remote"
+}

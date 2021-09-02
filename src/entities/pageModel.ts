@@ -1,15 +1,24 @@
 import { Token } from "aggregator-sdk";
-import {CallFuncParamType, VariableType, TokenApprovalResState} from "../core";
+import {CallFuncParamType, VariableType, TokenApprovalResState, PubType, ChainId, Source} from "../core";
 import { TriggerType, ExternalCallInfo, CallType} from "./contractModel";
-import { ChainId } from "../core/constant";
 import { BigNumberish } from "ethers";
+
+
+export interface PubObj{
+    type:PubType,
+    data:SuperContract|CronJob
+}
 
 export interface CronJob{
     key:string,
     name:string,
     cron:string,
     scheduler:TaskRunnerConf[],
-    chainId:ChainId
+    chainId:ChainId,
+    latestCID?:string,
+    src:Source,
+    runners?:TaskRunner[],
+    tasks?:{key:string, task:SuperContract}[]
 }
 
 export interface TaskRunnerConf{
@@ -48,6 +57,7 @@ export interface SuperContract{
     setVariableOperations:SetVariableOperation[];
     chainId:ChainId;
     approveTokens?:Token[];
+    latestCID?:string;
 }
 
 export enum SubType{
