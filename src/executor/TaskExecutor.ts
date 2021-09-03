@@ -1,6 +1,6 @@
+import {TriggerType, ExternalCallInfo, CallType, CallInfo, SetVariableOpr, ParameterFromVariable} from "../entities/contractModel";
 import {SetVariableOperation as PostOpr, SuperCall, SuperContract, SuperContractVariable, CallFunc, CallFuncParam, 
-    TransactionReceiptEvent, TransactionEventInfo, InputWhenRun, TriggerType, ExternalCallInfo, CallType, 
-    TaskRunner, InputWhenRunType, CallInfo, SetVariableOpr, ParameterFromVariable, TaskExecuteResult} from "../entities";
+    TransactionReceiptEvent, TransactionEventInfo, InputWhenRun,TaskRunner, InputWhenRunType, TaskExecuteResult} from "../entities/pageModel";
 import { flowCall, flowCallSafe, ChainId, CHAIN_CONFIG, CallFuncParamType, EmitEventType,
     ConstantNames, SpecialParamNameForInputWhenRun, VariableType, PARAMETER_ID_FOR_TARGET_CONTRACT, 
     PARAMETER_ID_FOR_SEND_ETH_VALUE, PARAMETER_ID_FOR_TOKEN_AMOUNT, PubType} from "../core";
