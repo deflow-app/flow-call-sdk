@@ -15,6 +15,6 @@ export default class JobWorker implements Worker{
     }
 
     public execute(wallet:Wallet){
-        executeTasks(this.taskRunnerConfs, this.runners, this.tasks, wallet);
+        return executeTasks(this.taskRunnerConfs, this.runners, this.tasks, wallet);
     }
 }

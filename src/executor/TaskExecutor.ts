@@ -1,6 +1,6 @@
 import {SetVariableOperation as PostOpr, SuperCall, SuperContract, SuperContractVariable, CallFunc, CallFuncParam, 
     TransactionReceiptEvent, TransactionEventInfo, InputWhenRun, TriggerType, ExternalCallInfo, CallType, 
-    TaskRunner, InputWhenRunType, CallInfo, SetVariableOpr, ParameterFromVariable, PubObj} from "../entities";
+    TaskRunner, InputWhenRunType, CallInfo, SetVariableOpr, ParameterFromVariable, TaskExecuteResult} from "../entities";
 import { flowCall, flowCallSafe, ChainId, CHAIN_CONFIG, CallFuncParamType, EmitEventType,
     ConstantNames, SpecialParamNameForInputWhenRun, VariableType, PARAMETER_ID_FOR_TARGET_CONTRACT, 
     PARAMETER_ID_FOR_SEND_ETH_VALUE, PARAMETER_ID_FOR_TOKEN_AMOUNT, PubType} from "../core";
@@ -15,7 +15,7 @@ type PostCallsForContractWrapper = {
     aftSetVarOpr:SetVariableOpr
 }
 
-export async function execute(callInfoInput:SuperContract, wallet: Signer | Provider, taskRunner?:TaskRunner):Promise<{reciept:any,events:TransactionEventInfo[]}>{
+export async function execute(callInfoInput:SuperContract, wallet: Signer | Provider, taskRunner?:TaskRunner):Promise<TaskExecuteResult>{
     if(callInfoInput.calls){
         let safeCall = taskRunner?taskRunner.safeMode:true;
         let externalVars = taskRunner?.inputsWhenRun || [];
@@ -70,11 +70,9 @@ export async function execute(callInfoInput:SuperContract, wallet: Signer | Prov
         }else{
             transRes = await flowCall(callsForContract, callInfoInput.variables.length, postCallsForContract, wallet, callInfoInput.chainId);
         }
-        console.log(transRes);
-        
-        return {reciept:transRes,events:analyzeCallEvents(callInfoInput.calls, transRes)};
+        return {isSuccess:true, task:callInfoInput, runner:taskRunner, reciept:transRes, events:analyzeCallEvents(callInfoInput.calls, transRes)};
     }
-    return null;
+    return {isSuccess:false, errMsg:'Invalid task'};
 }
 
 function assembleCallInput(call:SuperCall, variables:SuperContractVariable[], chainId:ChainId, senderAddr:string, externalVars:InputWhenRun[])
@@ -91,7 +89,7 @@ function assembleCallInput(call:SuperCall, variables:SuperContractVariable[], ch
     let callFunc:CallFunc = call.callFunc ? call.callFunc : null;
     let params:CallFuncParam[] = callFunc && callFunc.params ? callFunc.params : [];
 
-    console.log("call info", call);
+    // console.log("call info", call);
     if(CallType.callContract === call.callType){
         let callFuncParamVals:any[] = [];
 
@@ -197,11 +195,11 @@ function extractAddressInfo(callId:string, contractAddr:string, paramsSet:Parame
 }
 
 function assembleBeforeAll(postOperates:PostOpr[], externalVars:InputWhenRun[], variables:SuperContractVariable[]):PostCallsForContractWrapper[]{
-    console.log("externalVars", externalVars);
+    // console.log("externalVars", externalVars);
     let postCallsForContract:PostCallsForContractWrapper[] = [];
     for(let postOpr of postOperates){
         if(postOpr.type === TriggerType.beforeAll){
-            console.log("postOpr", postOpr);
+            // console.log("postOpr", postOpr);
             postCallsForContract.push({key: postOpr.id, aftSetVarOpr:{
                 variableIdToSet:getVarId(postOpr.variableCodeToSet, variables, false),
                 triggerType:postOpr.type,

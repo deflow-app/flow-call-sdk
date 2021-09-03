@@ -136,6 +136,15 @@ export interface TokenApproval{
     approvalList?:Array<TokenApprovalItem>
 }
 
+export interface TaskExecuteResult{
+    isSuccess:boolean,
+    task?:SuperContract,
+    runner?:TaskRunner,
+    errMsg?:string,
+    reciept?:any,
+    events?:TransactionEventInfo[]
+}
+
 export type TokenApprovalItem = {
     chainId:ChainId,
     tokenAddr:string,
