@@ -38,13 +38,14 @@
     "@ethersproject/experimental": "^5.0.1",
     "@types/jest": "^26.0.23",
     "@types/pino": "^6.3.8",
+    "aggregator-sdk": "link:../aggregator-sdk",
     "fs": "^0.0.1-security",
+    "ipfs": "^0.58.3",
     "pino": "^6.11.3",
     "pino-pretty": "^5.1.0",
     "simple-crypto-js": "^3.0.0",
     "tsdx": "^0.14.1",
     "tslib": "^2.1.0",
-    "typescript": "^4.1.3",
-    "aggregator-sdk": "link:../aggregator-sdk"
+    "typescript": "^4.1.3"
   }
 }

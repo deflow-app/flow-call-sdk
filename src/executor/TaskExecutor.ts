@@ -1,9 +1,9 @@
 import {SetVariableOperation as PostOpr, SuperCall, SuperContract, SuperContractVariable, CallFunc, CallFuncParam, 
     TransactionReceiptEvent, TransactionEventInfo, InputWhenRun, TriggerType, ExternalCallInfo, CallType, 
-    TaskRunner, InputWhenRunType, CallInfo, SetVariableOpr, ParameterFromVariable} from "../entities";
+    TaskRunner, InputWhenRunType, CallInfo, SetVariableOpr, ParameterFromVariable, PubObj} from "../entities";
 import { flowCall, flowCallSafe, ChainId, CHAIN_CONFIG, CallFuncParamType, EmitEventType,
     ConstantNames, SpecialParamNameForInputWhenRun, VariableType, PARAMETER_ID_FOR_TARGET_CONTRACT, 
-    PARAMETER_ID_FOR_SEND_ETH_VALUE, PARAMETER_ID_FOR_TOKEN_AMOUNT} from "../core";
+    PARAMETER_ID_FOR_SEND_ETH_VALUE, PARAMETER_ID_FOR_TOKEN_AMOUNT, PubType} from "../core";
 import {abiEncode, prepareExp, getMethodNmFromAbi, decodeExternalData, isNumeric} from '../utils';
 import { Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
