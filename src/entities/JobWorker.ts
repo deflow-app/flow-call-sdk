@@ -14,7 +14,7 @@ export default class JobWorker implements Worker{
         this.tasks = tasks;
     }
 
-    public execute(wallet:Wallet){
+    public async execute(wallet:Wallet){
         return executeTasks(this.taskRunnerConfs, this.runners, this.tasks, wallet);
     }
 }

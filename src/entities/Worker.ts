@@ -1,5 +1,5 @@
 import { Wallet } from '@ethersproject/wallet';
 
 export default interface Worker{
-    execute:(wallet:Wallet)=>any;
+    execute:(wallet:Wallet)=>Promise<any>;
 }
