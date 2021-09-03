@@ -72,6 +72,6 @@ export const doExecute = async function (runnerKey: string, runners: TaskRunner[
         }
     } else {
         console.log(`The contract [${taskRunner.contractKey}] does not exist.`);
-        return {isSuccess:false, errMsg:`The contract [${taskRunner.contractKey}] does not exist.`};
+        return {isSuccess:false, runner:taskRunner, errMsg:`The contract [${taskRunner.contractKey}] does not exist.`};
     }
 }
