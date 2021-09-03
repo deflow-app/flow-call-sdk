@@ -31,12 +31,12 @@ export const executeTasks = async function (taskRunnerConfs: TaskRunnerConf[], r
                     const fulfillResArr = results.filter((res) => res.status === "fulfilled");
                     const failFulfillRes = fulfillResArr.find((res) => !(res as PromiseFulfilledResult<TaskExecuteResult>).value.isSuccess);
                     if (errorRes || failFulfillRes) {// && taskRunnerConf.exitOnError){
-                        console.log("Fail to execute task");
+                        // console.log("Fail to execute task");
                         if (taskRunnerConf.exitOnError) {
                             return;
                         }
                     } else {
-                        console.log("Task execute successfully");
+                        // console.log("Task execute successfully");
                     }
                 } catch (e) {
                     console.error(e);

@@ -6,7 +6,6 @@ let METHOD_NAME_MAP:{[key:string]:string} = {};
 
 export function abiEncode(abi:any, funcNm:string, params:any[]):string{
     let intf = new Interface(abi);
-    console.log(funcNm, params);
     return intf.encodeFunctionData(funcNm, params);
 }
 
