@@ -18,7 +18,7 @@ export const executeTaskByCID = async (cid:string, runner:TaskRunner):Promise<{c
     let content = await readFileDecrypt(cid);
     if(!content) throw new Error("Got empty content!");
     let pubObj:PubObj = JSON.parse(content);
-    if(pubObj.type !== PubType.JOB) throw new Error("Got wrong type!");
+    if(pubObj.type !== PubType.TASK) throw new Error("Got wrong type!");
     let task:SuperContract = pubObj.data as SuperContract;
     return {chainId:task.chainId, worker:new TaskWorker(task, runner)};
 }
