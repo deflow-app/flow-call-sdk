@@ -32,19 +32,19 @@
   "module": "dist/flow-call-sdk.esm.js",
   "devDependencies": {
     "@types/node": "^14.14.31",
-    "ts-node": "^10.1.0"
+    "ts-node": "^10.1.0",
+    "@types/jest": "^26.0.23",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.1.0",
+    "typescript": "4.3.5"
   },
   "dependencies": {
     "@ethersproject/experimental": "^5.0.1",
-    "@types/jest": "^26.0.23",
     "@types/pino": "^6.3.8",
     "fs": "^0.0.1-security",
     "ipfs": "^0.58.3",
     "pino": "^6.11.3",
     "pino-pretty": "^5.1.0",
-    "simple-crypto-js": "^3.0.0",
-    "tsdx": "^0.14.1",
-    "tslib": "^2.1.0",
-    "typescript": "4.3.5"
+    "simple-crypto-js": "^3.0.0"
   }
 }
