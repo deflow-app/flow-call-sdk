@@ -38,7 +38,6 @@
     "@ethersproject/experimental": "^5.0.1",
     "@types/jest": "^26.0.23",
     "@types/pino": "^6.3.8",
-    "aggregator-sdk": "link:../aggregator-sdk",
     "fs": "^0.0.1-security",
     "ipfs": "^0.58.3",
     "pino": "^6.11.3",
