@@ -26,11 +26,11 @@ export default class JobWorker implements Worker{
                 }
             });
         });
-        approveTokens.forEach(async (at)=>{
+        for(let at of approveTokens){
             const contra = new Contract(at.address, erc20, wallet);
             const tx=await contra.approve(CHAIN_CONFIG[at.chainId].tokenReceiver,MaxUint256);
             await tx.wait();
-        });
+        };
     }
 
     public async execute(wallet:Wallet){
