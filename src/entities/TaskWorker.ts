@@ -12,6 +12,10 @@ export default class TaskWorker implements Worker{
         this.runner = runner;
     }
 
+    public async approve(wallet: Wallet){
+        throw new Error("Not supported");
+    }
+
     public async execute(wallet:Wallet){
         return execute(this.task, wallet, this.runner);
     }

@@ -1,7 +1,11 @@
-import { CronJob, SuperContract, TaskRunner, TaskRunnerConf } from "./pageModel";
+import { SuperContract, TaskRunner, TaskRunnerConf, Token } from "./pageModel";
+import {CHAIN_CONFIG} from "../core"
 import { Wallet } from '@ethersproject/wallet';
 import Worker from "./Worker";
 import { executeTasks } from "../executor/JobExecutor";
+import {Contract} from '@ethersproject/contracts';
+import { MaxUint256 } from "@ethersproject/constants/lib/bignumbers";
+import erc20 from "../core/ERC20.json";
 
 export default class JobWorker implements Worker{
     private readonly taskRunnerConfs: TaskRunnerConf[];
@@ -12,6 +16,21 @@ export default class JobWorker implements Worker{
         this.taskRunnerConfs = taskRunnerConfs;
         this.runners = runners;
         this.tasks = tasks;
+    }
+    public async approve(wallet:Wallet){
+        let approveTokens:Token[] = [];
+        this.tasks.forEach(t=>{
+            t.task.approveTokens && t.task.approveTokens.forEach(token=>{
+                if(!approveTokens.find(to=>to.address===token.address)){
+                    approveTokens.push(token);
+                }
+            });
+        });
+        approveTokens.forEach(async (at)=>{
+            const contra = new Contract(at.address, erc20, wallet);
+            const tx=await contra.approve(CHAIN_CONFIG[at.chainId].tokenReceiver,MaxUint256);
+            await tx.wait();
+        });
     }
 
     public async execute(wallet:Wallet){
