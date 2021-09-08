@@ -105,6 +105,7 @@ function assembleCallInput(call:SuperCall, variables:SuperContractVariable[], ch
                 parameterId: PARAMETER_ID_FOR_SEND_ETH_VALUE,
                 variableId: getVarId(ethVal.substring(1, ethVal.indexOf("}")), variables)
             })
+            sendEthValue = 0;
         }
 
         for(let i = 0; i < params.length; i ++){
@@ -344,9 +345,11 @@ function analyzeCallEvents(calls: SuperCall[], transRes: any): TransactionEventI
 
 function decodeExternalCallData(calls: SuperCall[], callData: string, returnData:string): ExternalCallInfo {
     for(let i = 0; i < calls.length; i ++){
-        let methodNm:string = getMethodNmFromAbi(calls[i].contractAddr, calls[i].abiInfo, callData);
-        if(methodNm){
-            return decodeExternalData(calls[i].abiInfo, methodNm, callData, returnData);
+        if(calls[i].abiInfo){
+            let methodNm:string = getMethodNmFromAbi(calls[i].contractAddr, calls[i].abiInfo, callData);
+            if(methodNm){
+                return decodeExternalData(calls[i].abiInfo, methodNm, callData, returnData);
+            }
         }
     }
     return null;
