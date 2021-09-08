@@ -202,7 +202,8 @@ export function condExpToPn(exp:string):string[]|null{
  * @returns 
  */
 export function analyzeExp(exp:string):string[]|null {
-    let b:boolean = /^(-?[√!]?(-?\d+\.\d+|-?\d+|-?\{\d\})\s?[+\-*\/^%]?\s*)+if\s+[\w\W]*\s+else\s+(-?[√!]?(-?\d+\.\d+|-?\d+|-?\{\d\})\s*[+\-*\/^%]?\s*)+$/.test(exp);
+    // let b:boolean = /^(-?[√!]?(-?\d+\.\d+|-?\d+|-?\{\d\})\s?[+\-*\/^%]?\s*)+if\s+[\w\W]*\s+else\s+(-?[√!]?(-?\d+\.\d+|-?\d+|-?\{\d\})\s*[+\-*\/^%]?\s*)+$/.test(exp);
+    let b:boolean = /^([\s\S])*if([\s\S])*else([\s\S])*$/.test(exp);
     if(!b) {    //非三目运算
         let pnexp = condExpToPn(exp);
         return pnexp ? pnexp.reverse() : null;
