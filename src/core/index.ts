@@ -20,7 +20,7 @@ export function getFlowCallHelperABI(){
 export async function flowCall(callList: CallInfo[], variableCount: number, setVariableOperationList: SetVariableOperation[],
     wallet: Signer | Provider, chainId: ChainId = ChainId.BSCMAINNET, sendEthValue:BigNumberish = 0): Promise<any> {
     // const provider=new JsonRpcProvider(CHAIN_CONFIG[chainId].rpcUrl);
-    logger.info("Start a flow call: ", chainId, callList, variableCount, setVariableOperationList);
+    logger.info("Start a flow call...");
     const contract = new Contract(CHAIN_CONFIG[chainId].contractAddress, abi, wallet);
     try{
         let estiGas:BigNumber = await contract.estimateGas.flowCall(callList, variableCount, setVariableOperationList,{value:sendEthValue});
@@ -40,7 +40,7 @@ export async function flowCall(callList: CallInfo[], variableCount: number, setV
 export async function flowCallSafe(callList: CallInfo[], variableCount: number, setVariableOperationList: SetVariableOperation[],
     wallet: Signer | Provider, chainId: ChainId = ChainId.BSCMAINNET, sendEthValue:BigNumberish = 0, approvedTokens:string[]): Promise<any> {
     // const provider=new JsonRpcProvider(CHAIN_CONFIG[chainId].rpcUrl);
-    logger.info("Start a safe flow call: ", chainId, callList, variableCount, setVariableOperationList,approvedTokens);
+    logger.info("Start a safe flow call...");
     const contract = new Contract(CHAIN_CONFIG[chainId].contractAddress, abi, wallet);
     try{
         let estiGas:BigNumber = await contract.estimateGas.flowCallSafe(callList, variableCount, setVariableOperationList,approvedTokens,{value:sendEthValue});

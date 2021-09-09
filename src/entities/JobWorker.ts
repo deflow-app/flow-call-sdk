@@ -29,7 +29,7 @@ export default class JobWorker implements Worker{
 
         for(let at of approveTokens){
             const contract = new Contract(at.address, erc20, wallet);
-            let allowance = await contract.allowance(wallet, CHAIN_CONFIG[at.chainId].tokenReceiver);
+            let allowance = await contract.allowance(await wallet.getAddress(), CHAIN_CONFIG[at.chainId].tokenReceiver);
             if(allowance.eq(0)){
                 const tx=await contract.approve(CHAIN_CONFIG[at.chainId].tokenReceiver,MaxUint256);
                 await tx.wait();

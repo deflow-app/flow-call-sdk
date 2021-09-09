@@ -76,7 +76,7 @@ export async function execute(callInfoInput:SuperContract, wallet: Signer | Prov
             }
             return {isSuccess:true, task:callInfoInput, runner:taskRunner, reciept:transRes, events:analyzeCallEvents(callInfoInput.calls, transRes)};
         }catch(e2){
-            console.error(e2);
+            // console.error(e2);
             let reciept= e2;
             let message=e2.message;
             if (e2.code == -32603) {
@@ -94,7 +94,7 @@ export async function execute(callInfoInput:SuperContract, wallet: Signer | Prov
                 }
             }
 
-            console.error("Error decoded: ",reciept);
+            // console.error("Error decoded: ",reciept);
             return {isSuccess:false, task:callInfoInput, runner:taskRunner, reciept:reciept, errMsg: message};
         }
     }
