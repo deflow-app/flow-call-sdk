@@ -3,10 +3,11 @@ import {SetVariableOperation as PostOpr, SuperCall, SuperContract, SuperContract
     TransactionReceiptEvent, TransactionEventInfo, InputWhenRun,TaskRunner, InputWhenRunType, TaskExecuteResult} from "../entities/pageModel";
 import { flowCall, flowCallSafe, ChainId, CHAIN_CONFIG, CallFuncParamType, EmitEventType,
     ConstantNames, SpecialParamNameForInputWhenRun, VariableType, PARAMETER_ID_FOR_TARGET_CONTRACT, 
-    PARAMETER_ID_FOR_SEND_ETH_VALUE, PARAMETER_ID_FOR_TOKEN_AMOUNT, PubType} from "../core";
+    PARAMETER_ID_FOR_SEND_ETH_VALUE, PARAMETER_ID_FOR_TOKEN_AMOUNT, getFlowCallABI} from "../core";
 import {abiEncode, prepareExp, getMethodNmFromAbi, decodeExternalData, isNumeric} from '../utils';
 import { Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
+import { Interface } from '@ethersproject/abi';
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 
 
@@ -14,6 +15,8 @@ type PostCallsForContractWrapper = {
     key:string,
     aftSetVarOpr:SetVariableOpr
 }
+
+const flowCallInterface=new Interface(getFlowCallABI());
 
 export async function execute(callInfoInput:SuperContract, wallet: Signer | Provider, taskRunner?:TaskRunner):Promise<TaskExecuteResult>{
     if(callInfoInput.calls){
@@ -65,14 +68,37 @@ export async function execute(callInfoInput:SuperContract, wallet: Signer | Prov
         }
         let transRes;
         // console.log("callsForContract", callsForContract, "postCallsForContract", postCallsForContract);
-        if(safeCall){
-            transRes = await flowCallSafe(callsForContract, callInfoInput.variables.length, postCallsForContract, wallet, callInfoInput.chainId, 0, tokenAddrs);
-        }else{
-            transRes = await flowCall(callsForContract, callInfoInput.variables.length, postCallsForContract, wallet, callInfoInput.chainId);
+        try{
+            if(safeCall){
+                transRes = await flowCallSafe(callsForContract, callInfoInput.variables.length, postCallsForContract, wallet, callInfoInput.chainId, 0, tokenAddrs);
+            }else{
+                transRes = await flowCall(callsForContract, callInfoInput.variables.length, postCallsForContract, wallet, callInfoInput.chainId);
+            }
+            return {isSuccess:true, task:callInfoInput, runner:taskRunner, reciept:transRes, events:analyzeCallEvents(callInfoInput.calls, transRes)};
+        }catch(e2){
+            console.error(e2);
+            let reciept= e2;
+            let message=e2.message;
+            if (e2.code == -32603) {
+                //Internal JSON-RPC error
+                try{
+                    flowCallInterface.decodeFunctionResult("flowCall",e2.data.data);
+                }catch(e3){
+                    reciept=e3;
+                    if(e3.errorName==="ExternalCallError"){
+                        const callId=BigNumber.from(e3.errorArgs[0]).toNumber();
+                        message=`Got error when invoking [${callInfoInput?.calls[callId]?.name}] (id=${callId})`;
+                    }
+                    else
+                        message=e3.reason;
+                }
+            }
+
+            console.error("Error decoded: ",reciept);
+            return {isSuccess:false, task:callInfoInput, runner:taskRunner, reciept:reciept, errMsg: message};
         }
-        return {isSuccess:true, task:callInfoInput, runner:taskRunner, reciept:transRes, events:analyzeCallEvents(callInfoInput.calls, transRes)};
     }
-    return {isSuccess:false, errMsg:'Invalid task'};
+    return {isSuccess:false, task:callInfoInput, runner:taskRunner, errMsg:'Invalid task'};
 }
 
 function assembleCallInput(call:SuperCall, variables:SuperContractVariable[], chainId:ChainId, senderAddr:string, externalVars:InputWhenRun[])

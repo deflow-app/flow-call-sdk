@@ -64,12 +64,7 @@ export const doExecute = async function (runnerKey: string, runners: TaskRunner[
     }
     let task: SuperContract = tasks.find(t => t.key === taskRunner.contractKey)?.task;
     if (task) {
-        try{
-            return await execute(task, wallet, taskRunner);
-        }catch(e){
-            console.error("Error occurred!",e);
-            return {isSuccess:false, errMsg:e.message};
-        }
+        return await execute(task, wallet, taskRunner);
     } else {
         console.log(`The contract [${taskRunner.contractKey}] does not exist.`);
         return {isSuccess:false, runner:taskRunner, errMsg:`The contract [${taskRunner.contractKey}] does not exist.`};
