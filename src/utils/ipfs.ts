@@ -23,13 +23,14 @@ const connectToIPFS = ()=>{
 }
 
 export const writeFileEncrypt = async (content:string):Promise<string>=>{
-    return writeFile(encrypt(content));
+    let encContent = encrypt(content);
+    return writeFile(encContent);
 }
 
 export const writeFile = async (content:string):Promise<string>=>{
     let node = connectToIPFS();
     if(node){
-        let {cid,} = await node.add({content:content}, {pin:true});
+        let {cid,} = await node.add({content:content}, {chunker:'size-262144','cidVersion':0,hashAlg:'sha2-256',pin:true});
         if(cid){
             return cid.toV0().toString();
         }
