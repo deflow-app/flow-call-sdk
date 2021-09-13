@@ -13,9 +13,9 @@ export const CHAIN_CONFIG={
     },
     [ChainId.BSCMAINNET]:{
         rpcUrl:"https://bsc-dataseed4.ninicoin.io",
-        contractAddress:"",
-        tokenReceiver:"",
-        flowCallHelper:""
+        contractAddress:"0xD9a29968023126231849c499FDAC6830339962A5",
+        tokenReceiver:"0xDa960B624B44E210c2FC4219A95Bd08dc1744ef1",
+        flowCallHelper:"0x35cbeEA955c54891C120D1d73c895aa3B2A96480"
     },
     [ChainId.HECOMAINNET]:{
         rpcUrl:"https://http-mainnet.hecochain.com",
