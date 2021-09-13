@@ -29,6 +29,9 @@
     "type": "git",
     "url": "https://github.com/deflow-app/flow-call-sdk.git"
   },
+  "publishConfig": {
+    "registry":"https://registry.npmjs.org"
+  },
   "module": "dist/flow-call-sdk.esm.js",
   "devDependencies": {
     "@types/jest": "^26.0.23",
