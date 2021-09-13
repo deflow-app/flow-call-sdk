@@ -68,11 +68,16 @@ export async function execute(callInfoInput:SuperContract, wallet: Signer | Prov
         }
         let transRes;
         // console.log("callsForContract", callsForContract, "postCallsForContract", postCallsForContract);
+        let sendEthValue="0";
+        const input=taskRunner?.inputsWhenRun?.find(v=>v.inputWhenRunType==InputWhenRunType.sendEthToFlowCall);
+        if(input){
+            sendEthValue=input.value;
+        }
         try{
             if(safeCall){
-                transRes = await flowCallSafe(callsForContract, callInfoInput.variables.length, postCallsForContract, wallet, callInfoInput.chainId, 0, tokenAddrs);
+                transRes = await flowCallSafe(callsForContract, callInfoInput.variables.length, postCallsForContract, wallet, callInfoInput.chainId, sendEthValue, tokenAddrs);
             }else{
-                transRes = await flowCall(callsForContract, callInfoInput.variables.length, postCallsForContract, wallet, callInfoInput.chainId);
+                transRes = await flowCall(callsForContract, callInfoInput.variables.length, postCallsForContract, wallet, callInfoInput.chainId,sendEthValue);
             }
             return {isSuccess:true, task:callInfoInput, runner:taskRunner, reciept:transRes, events:analyzeCallEvents(callInfoInput.calls, transRes)};
         }catch(e2){
