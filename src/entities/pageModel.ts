@@ -33,7 +33,8 @@ export interface TaskRunnerConf {
 
 export enum InputWhenRunType {
     call = 0,
-    setVariableOperation = 1
+    setVariableOperation = 1,
+    sendEthToFlowCall = 2
 }
 
 export interface InputWhenRun {
