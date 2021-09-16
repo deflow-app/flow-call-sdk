@@ -16,19 +16,56 @@ export interface CronJob {
     key: string,
     name: string,
     cron: string,
-    scheduler: TaskRunnerConf[],
+    scheduler: (TaskRunnerConf | JsCallConf)[],
     chainId: ChainId,
     latestCID?: string,
     src: Source,
     runners?: TaskRunner[],
-    tasks?: { key: string, task: SuperContract }[]
+    tasks?: { key: string, task: SuperContract }[],
+    variables:JobVariable[]
+}
+
+export interface JobVariable{
+    code:string,
+    name:string,
+    value:any
+}
+
+export interface SetJobVariable{
+    variableCode:string
+}
+
+export interface SetJobVariableByEvent extends SetJobVariable{
+    eventName:string,
+    eventInputName:string
+}
+
+export interface SetJobVariableByReturnValue extends SetJobVariable{
+    returnValueIndex:number
 }
 
 export interface TaskRunnerConf {
-    taskRunnerKeys: { key: string, seq: number }[],
+    taskRunnerKeys: { key: string, seq: number,setVarList:SetJobVariableByEvent[]}[],
     seq: number,
     isParalelle: boolean,
     exitOnError: boolean
+}
+
+export interface JsCallConf{
+    jsCall:JsCall,
+    exitOnError:boolean,
+    setVarList:SetJobVariable[]
+}
+
+export interface JsCall {
+    id:string,
+    name:string,
+    callCondition?: string,
+    contractAddr: string,
+    contractName?: string,
+    abiInfo: any,
+    callFunc: CallFunc,
+    sendEthValue?: BigNumberish
 }
 
 export enum InputWhenRunType {
