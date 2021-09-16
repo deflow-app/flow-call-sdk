@@ -16,7 +16,7 @@ export interface CronJob {
     key: string,
     name: string,
     cron: string,
-    scheduler: (TaskRunnerConf | JsCallConf)[],
+    scheduler: Array<TaskRunnerConf | JsCallConf>,
     chainId: ChainId,
     latestCID?: string,
     src: Source,
@@ -196,4 +196,8 @@ export type TokenApprovalRes = {
     tokenAddr: string,
     state: TokenApprovalResState,
     tokenDecimal: number
+}
+
+export const isTaskRunnerConf = (obj:TaskRunnerConf|JsCallConf):obj is TaskRunnerConf => {
+    return (obj as TaskRunnerConf).taskRunnerKeys!==undefined
 }
