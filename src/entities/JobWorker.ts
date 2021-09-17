@@ -1,4 +1,4 @@
-import { SuperContract, TaskRunner, TaskRunnerConf, Token } from "./pageModel";
+import { SuperContract, TaskRunner, TaskRunnerConf,JsCallConf, Token } from "./pageModel";
 import {CHAIN_CONFIG} from "../core"
 import { Wallet } from '@ethersproject/wallet';
 import Worker from "./Worker";
@@ -8,11 +8,11 @@ import { MaxUint256 } from "@ethersproject/constants/lib/bignumbers";
 import erc20 from "../core/ERC20.json";
 
 export default class JobWorker implements Worker{
-    private readonly taskRunnerConfs: TaskRunnerConf[];
+    private readonly taskRunnerConfs: Array<TaskRunnerConf|JsCallConf>;
     private readonly runners: TaskRunner[];
     private readonly tasks: { key: string, task: SuperContract }[];
 
-    public constructor(taskRunnerConfs:TaskRunnerConf[], runners:TaskRunner[], tasks:{ key: string, task: SuperContract }[]){
+    public constructor(taskRunnerConfs:Array<TaskRunnerConf|JsCallConf>, runners:TaskRunner[], tasks:{ key: string, task: SuperContract }[]){
         this.taskRunnerConfs = taskRunnerConfs;
         this.runners = runners;
         this.tasks = tasks;

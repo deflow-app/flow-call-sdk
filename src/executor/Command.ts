@@ -11,7 +11,7 @@ export const executeJobByCID = async (cid:string):Promise<{cron:string,chainId:C
     let pubObj:PubObj = JSON.parse(content);
     if(pubObj.type !== PubType.JOB) throw new Error("Got wrong type!");
     let job:CronJob = pubObj.data as CronJob;
-    return {cron:job.cron, chainId:job.chainId, worker:new JobWorker(job.scheduler.filter(v=>isTaskRunnerConf(v)) as TaskRunnerConf[], job.runners, job.tasks)};
+    return {cron:job.cron, chainId:job.chainId, worker:new JobWorker(job.scheduler, job.runners, job.tasks)};
 }
 
 export const executeTaskByCID = async (cid:string, runner:TaskRunner):Promise<{chainId:ChainId, worker:Worker}> => {

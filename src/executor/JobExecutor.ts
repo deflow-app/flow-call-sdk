@@ -1,12 +1,14 @@
-import { TaskRunnerConf, TaskRunner, SuperContract, TaskExecuteResult } from "../entities/pageModel";
+import { TaskRunnerConf, JsCallConf, TaskRunner, SuperContract, TaskExecuteResult, isTaskRunnerConf } from "../entities/pageModel";
 import { execute } from "./TaskExecutor";
 import { Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
 
 
-export const executeTasks = async function (taskRunnerConfs: TaskRunnerConf[], runners: TaskRunner[], 
+export const executeTasks = async function (scheduler: Array<TaskRunnerConf|JsCallConf>, runners: TaskRunner[], 
                                             tasks: { key: string, task: SuperContract }[], wallet: Signer | Provider):Promise<Array<TaskExecuteResult>> {
     let rtnRes:Array<TaskExecuteResult> = [];
+    let tmp = scheduler.filter(v=>isTaskRunnerConf(v));
+    let taskRunnerConfs = tmp as Array<TaskRunnerConf>;
     for (let taskRunnerConf of taskRunnerConfs) {
         if (taskRunnerConf.taskRunnerKeys) {
             let sortedTasks = taskRunnerConf.taskRunnerKeys.sort((tk1, tk2) => {
