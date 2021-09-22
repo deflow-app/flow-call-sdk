@@ -54,7 +54,8 @@ export interface TaskRunnerConf {
 export interface JsCallConf{
     jsCall:JsCall,
     exitOnError:boolean,
-    setVarList:SetJobVariable[]
+    setVarList:SetJobVariable[],
+    seq: number,
 }
 
 export interface JsCall {
