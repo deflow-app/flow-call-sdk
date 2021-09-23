@@ -44,8 +44,12 @@ export interface SetJobVariableByReturnValue extends SetJobVariable{
     returnValueIndex:number
 }
 
+export interface SetJobVariableByTaskVariable extends SetJobVariable{
+    taskVariableCode:string
+}
+
 export interface TaskRunnerConf {
-    taskRunnerKeys: { key: string, seq: number,setVarList:SetJobVariableByEvent[]}[],
+    taskRunnerKeys: { key: string, seq: number,setVarList:SetJobVariableByTaskVariable[]}[],
     seq: number,
     isParalelle: boolean,
     exitOnError: boolean
