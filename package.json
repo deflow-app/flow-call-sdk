@@ -30,7 +30,7 @@
     "url": "https://github.com/deflow-app/flow-call-sdk.git"
   },
   "publishConfig": {
-    "registry":"https://registry.npmjs.org"
+    "registry": "https://registry.npmjs.org"
   },
   "module": "dist/flow-call-sdk.esm.js",
   "devDependencies": {
@@ -45,6 +45,7 @@
     "@ethersproject/experimental": "^5.0.1",
     "@types/pino": "^6.3.8",
     "crypto-js": "^4.1.1",
+    "expression-eval": "^5.0.0",
     "fs": "^0.0.1-security",
     "ipfs": "^0.58.3",
     "pino": "^6.11.3",

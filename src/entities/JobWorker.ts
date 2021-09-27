@@ -1,4 +1,4 @@
-import { SuperContract, TaskRunner, TaskRunnerConf,JsCallConf, Token } from "./pageModel";
+import { SuperContract, TaskRunner, TaskRunnerConf,JsCallConf, Token, JobVariable } from "./pageModel";
 import {CHAIN_CONFIG} from "../core"
 import { Wallet } from '@ethersproject/wallet';
 import Worker from "./Worker";
@@ -11,11 +11,14 @@ export default class JobWorker implements Worker{
     private readonly taskRunnerConfs: Array<TaskRunnerConf|JsCallConf>;
     private readonly runners: TaskRunner[];
     private readonly tasks: { key: string, task: SuperContract }[];
+    private readonly variables : JobVariable[];
 
-    public constructor(taskRunnerConfs:Array<TaskRunnerConf|JsCallConf>, runners:TaskRunner[], tasks:{ key: string, task: SuperContract }[]){
+    public constructor(taskRunnerConfs:Array<TaskRunnerConf|JsCallConf>, runners:TaskRunner[], tasks:{ key: string, task: SuperContract }[],
+        variables:JobVariable[]){
         this.taskRunnerConfs = taskRunnerConfs;
         this.runners = runners;
         this.tasks = tasks;
+        this.variables = variables;
     }
     public async approve(wallet:Wallet){
         let approveTokens:Token[] = [];
@@ -38,6 +41,6 @@ export default class JobWorker implements Worker{
     }
 
     public async execute(wallet:Wallet){
-        return executeTasks(this.taskRunnerConfs, this.runners, this.tasks, wallet);
+        return executeTasks(this.taskRunnerConfs, this.runners, this.tasks, wallet, this.variables);
     }
 }

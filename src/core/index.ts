@@ -54,3 +54,29 @@ export async function flowCallSafe(callList: CallInfo[], variableCount: number, 
         throw e;
     }
 }
+
+export async function javascriptCall(contractAddr: string, abiInfo: any, funcName:string, paramVals:any[],
+    wallet: Signer | Provider, chainId: ChainId = ChainId.BSCMAINNET, sendEthValue:BigNumberish = 0): Promise<any> {
+    logger.info("Start a JS call...", "contractAddr", contractAddr, "funcName", funcName, "paramVals", paramVals, "sendEthValue", sendEthValue);
+    try{
+        const contract = new Contract(contractAddr, abiInfo, wallet);
+        let func = abiInfo.find(item=>item.type==='function' && item.name===funcName);
+        let tx = null;
+        let rpt = null;
+        if(func?.stateMutability!=='view'){
+            let estiGas:BigNumber = await contract.estimateGas[funcName](...paramVals, {value:sendEthValue});
+            tx = await contract.functions[funcName](...paramVals, {value:sendEthValue,  gasLimit:estiGas.add(estiGas.div(10))});
+            rpt = await tx.wait();
+        }else{
+            tx = await contract.functions[funcName](...paramVals, {value:sendEthValue});
+            rpt = tx;
+        }
+        logger.info("JS call successful!!!");
+        console.log("js call rpt:", rpt);
+        return rpt;
+    }
+    catch(e){
+        console.error(e);
+        throw e;
+    }
+}

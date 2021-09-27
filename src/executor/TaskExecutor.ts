@@ -1,14 +1,16 @@
 import {TriggerType, ExternalCallInfo, CallType, CallInfo, SetVariableOpr, ParameterFromVariable} from "../entities/contractModel";
-import {SetVariableOperation as PostOpr, SuperCall, SuperContract, SuperContractVariable, CallFunc, CallFuncParam, 
-    TransactionReceiptEvent, TransactionEventInfo, InputWhenRun,TaskRunner, InputWhenRunType, TaskExecuteResult} from "../entities/pageModel";
-import { flowCall, flowCallSafe, ChainId, CHAIN_CONFIG, CallFuncParamType, EmitEventType,
+import {SetVariableOperation as PostOpr, SuperCall, SuperContract, JsCall, SuperContractVariable, CallFunc, CallFuncParam, 
+    TransactionReceiptEvent, TransactionEventInfo, InputWhenRun,TaskRunner, InputWhenRunType, TaskExecuteResult, JSExecuteResult,
+    JobVariable} from "../entities/pageModel";
+import { flowCall, flowCallSafe, javascriptCall, ChainId, CHAIN_CONFIG, CallFuncParamType, EmitEventType,
     ConstantNames, SpecialParamNameForInputWhenRun, VariableType, PARAMETER_ID_FOR_TARGET_CONTRACT, 
     PARAMETER_ID_FOR_SEND_ETH_VALUE, PARAMETER_ID_FOR_TOKEN_AMOUNT, getFlowCallABI} from "../core";
 import {abiEncode, prepareExp, getMethodNmFromAbi, decodeExternalData, isNumeric} from '../utils';
-import { Signer } from "ethers";
+import { Contract, Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
 import { Interface } from '@ethersproject/abi';
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
+import { compile } from 'expression-eval';
 
 
 type PostCallsForContractWrapper = {
@@ -79,7 +81,8 @@ export async function execute(callInfoInput:SuperContract, wallet: Signer | Prov
             }else{
                 transRes = await flowCall(callsForContract, callInfoInput.variables.length, postCallsForContract, wallet, callInfoInput.chainId,sendEthValue);
             }
-            return {isSuccess:true, task:callInfoInput, runner:taskRunner, reciept:transRes, events:analyzeCallEvents(callInfoInput.calls, transRes)};
+            return {isSuccess:true, task:callInfoInput, runner:taskRunner, reciept:transRes, 
+                events:analyzeCallEvents(callInfoInput.calls.map(ca=>{return {contractAddr:ca.contractAddr, abiInfo:ca.abiInfo}}), transRes)};
         }catch(e2){
             // console.error(e2);
             let reciept= e2;
@@ -104,6 +107,79 @@ export async function execute(callInfoInput:SuperContract, wallet: Signer | Prov
         }
     }
     return {isSuccess:false, task:callInfoInput, runner:taskRunner, errMsg:'Invalid task'};
+}
+
+export async function executeJsCall(jsCall:JsCall, varValList:Array<JobVariable>, wallet: Signer | Provider):Promise<JSExecuteResult>{
+    if(jsCall.callCondition){
+        let str = jsCall.callCondition;
+        console.log("js call condition before:", str)
+        let varNames = [];
+        if(/\{\w+\}/.test(str)){
+            let vars:Array<string>|null = str.match(/\{\w+\}/gi);
+            for(let v of vars){
+                let varNm = v.substring(1, v.indexOf('}'));
+                varNames.push(varNm);
+                str = str.replace(v, varNm);
+            }
+        }
+        console.log("js call condition after:", str)
+        const fn = compile(str);
+        let params:{[name:string]:any} = {};
+        for(let varNm of varNames){
+            let varVal = varValList.find(val=>val.name===varNm);
+            params[varNm]= varVal ? varVal.value: null;
+        }
+        console.log("params", params);
+        let isCall = fn(params);
+        console.log("isCall:", isCall);
+        if(!isCall){
+            return {resCode:2, jsCall:jsCall}; 
+        }
+    }
+    let sendEthValue = 0;
+    let senderAddress = await (wallet as Signer).getAddress();
+    if(jsCall.sendEthValue && jsCall.sendEthValue.toString().startsWith("{")){
+        let ethVal = sendEthValue.toString();
+        let varVal = varValList.find(v=>v.name===ethVal.substring(1, ethVal.indexOf("}")));
+        sendEthValue = varVal.value;
+    }
+    let params:CallFuncParam[] = jsCall.callFunc?.params;
+    let callFuncParamVals:any[] = [];
+    for(let i = 0; i < params.length; i ++){
+        if(params[i].type == CallFuncParamType.var){
+            let varVal = varValList.find(v=>v.code===params[i].value);
+            callFuncParamVals.push(varVal.value)
+        }else if(params[i].type == CallFuncParamType.val){
+            callFuncParamVals.push(assembleCallFuncParamVal(params[i].value));
+        }else if(params[i].type == CallFuncParamType.const){
+            let constName:ConstantNames = params[i].value;
+            if(constName === ConstantNames.flowCallContract){
+                callFuncParamVals.push(CHAIN_CONFIG[jsCall.chainId].contractAddress);
+            }else if(constName === ConstantNames.senderAddress){
+                callFuncParamVals.push(senderAddress);
+            }
+        }
+    }
+
+    let contractAddr = jsCall.contractAddr;
+    if(contractAddr.startsWith("<")){
+        let constName = contractAddr.substring(1, contractAddr.indexOf(">"));
+        if(constName === ConstantNames.flowCallContract){
+            contractAddr = CHAIN_CONFIG[jsCall.chainId].contractAddress;
+        }else if(constName === ConstantNames.senderAddress){
+            contractAddr = senderAddress;
+        }
+    }else if(contractAddr.startsWith("{")){
+        let varVal = varValList.find(v=>v.name===contractAddr.substring(1, contractAddr.indexOf("}")));
+        contractAddr = varVal.value;
+    }
+    try{
+        let call = {contractAddr:contractAddr, abiInfo:jsCall.abiInfo}
+        let transRes = await javascriptCall(contractAddr, jsCall.abiInfo, jsCall.callFunc.name, callFuncParamVals, wallet, jsCall.chainId, sendEthValue);
+        return {resCode:1, jsCall:jsCall, reciept:transRes, events:analyzeCallEvents([call], transRes)};
+    }catch(e){
+        return {resCode:0, jsCall:jsCall, errMsg: e.message};
+    }
 }
 
 function assembleCallInput(call:SuperCall, variables:SuperContractVariable[], chainId:ChainId, senderAddr:string, externalVars:InputWhenRun[])
@@ -347,7 +423,7 @@ function getTridFromCalls(triggerId: string, calls: SuperCall[]): number {
     return -1;
 }
 
-function analyzeCallEvents(calls: SuperCall[], transRes: any): TransactionEventInfo[] {
+function analyzeCallEvents(calls: {contractAddr:string, abiInfo:any}[], transRes: any): TransactionEventInfo[] {
     let transEventInfos:TransactionEventInfo[]=[];
     if(transRes.events){
         for(let i = 0; i < transRes.events.length; i ++){
@@ -374,7 +450,7 @@ function analyzeCallEvents(calls: SuperCall[], transRes: any): TransactionEventI
     return transEventInfos;
 }
 
-function decodeExternalCallData(calls: SuperCall[], callData: string, returnData:string): ExternalCallInfo {
+function decodeExternalCallData(calls: {contractAddr:string, abiInfo:any}[], callData: string, returnData:string): ExternalCallInfo {
     for(let i = 0; i < calls.length; i ++){
         if(calls[i].abiInfo){
             let methodNm:string = getMethodNmFromAbi(calls[i].contractAddr, calls[i].abiInfo, callData);

@@ -70,7 +70,8 @@ export interface JsCall {
     contractName?: string,
     abiInfo: any,
     callFunc: CallFunc,
-    sendEthValue?: BigNumberish
+    sendEthValue?: BigNumberish,
+    chainId?:ChainId
 }
 
 export enum InputWhenRunType {
@@ -191,6 +192,14 @@ export interface TaskExecuteResult {
     events?: TransactionEventInfo[]
 }
 
+export interface JSExecuteResult {
+    resCode: number,
+    jsCall?: JsCall,
+    errMsg?: string,
+    reciept?: any,
+    events?: TransactionEventInfo[]
+}
+
 export type TokenApprovalItem = {
     chainId: ChainId,
     tokenAddr: string,
@@ -204,5 +213,9 @@ export type TokenApprovalRes = {
 }
 
 export const isTaskRunnerConf = (obj:TaskRunnerConf|JsCallConf):obj is TaskRunnerConf => {
-    return (obj as TaskRunnerConf).taskRunnerKeys!==undefined
+    return (obj as TaskRunnerConf).taskRunnerKeys!==undefined;
+}
+
+export const isSetJobVariableByEvent = (obj:SetJobVariable):obj is SetJobVariableByEvent => {
+    return (obj as SetJobVariableByEvent).eventName!==undefined;
 }
