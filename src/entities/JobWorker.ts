@@ -6,14 +6,15 @@ import { executeTasks } from "../executor/JobExecutor";
 import {Contract} from '@ethersproject/contracts';
 import { MaxUint256 } from "@ethersproject/constants/lib/bignumbers";
 import erc20 from "../core/ERC20.json";
+import { TaskCallConf } from ".";
 
 export default class JobWorker implements Worker{
-    private readonly taskRunnerConfs: Array<TaskRunnerConf|JsCallConf>;
+    private readonly taskRunnerConfs: Array<TaskRunnerConf|JsCallConf|TaskCallConf>;
     private readonly runners: TaskRunner[];
     private readonly tasks: { key: string, task: SuperContract }[];
     private readonly variables : JobVariable[];
 
-    public constructor(taskRunnerConfs:Array<TaskRunnerConf|JsCallConf>, runners:TaskRunner[], tasks:{ key: string, task: SuperContract }[],
+    public constructor(taskRunnerConfs:Array<TaskRunnerConf|JsCallConf|TaskCallConf>, runners:TaskRunner[], tasks:{ key: string, task: SuperContract }[],
         variables:JobVariable[]){
         this.taskRunnerConfs = taskRunnerConfs;
         this.runners = runners;

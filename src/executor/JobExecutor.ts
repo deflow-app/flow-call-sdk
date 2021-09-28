@@ -1,12 +1,12 @@
 import { TaskRunnerConf, JsCallConf, TaskRunner, SuperContract, TaskExecuteResult, JSExecuteResult, isTaskRunnerConf, JobVariable, 
-    SetJobVariableByTaskVariable, SetJobVariable, isSetJobVariableByEvent, SetJobVariableByEvent, SetJobVariableByReturnValue } from "../entities/pageModel";
+    SetJobVariableByTaskVariable, SetJobVariable, isSetJobVariableByEvent, SetJobVariableByEvent, SetJobVariableByReturnValue, TaskCallConf, isJsCallConf } from "../entities/pageModel";
 import { VariableType } from "../core/constant";
 import { execute, executeJsCall } from "./TaskExecutor";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
 
-export const executeTasks = async function (scheduler: Array<TaskRunnerConf|JsCallConf>, runners: TaskRunner[], 
+export const executeTasks = async function (scheduler: Array<TaskRunnerConf|JsCallConf|TaskCallConf>, runners: TaskRunner[], 
                                             tasks: { key: string, task: SuperContract }[], 
                                             wallet: Signer | Provider,  jobVariables?:Array<JobVariable>):Promise<Array<TaskExecuteResult>> {
     let rtnRes:Array<TaskExecuteResult> = [];
@@ -17,7 +17,7 @@ export const executeTasks = async function (scheduler: Array<TaskRunnerConf|JsCa
             rtnRes = rtnRes.concat(executeRunnerRes.results);
             variableValList = variableValList.concat(executeRunnerRes.varVals);
             if(executeRunnerRes.isExit) break;
-        }else{
+        }else if(isJsCallConf(runnerConf)){
             let executeRunnerRes = await executeJsRunner(runnerConf, variableValList, jobVariables, wallet)
             rtnRes = rtnRes.concat({...executeRunnerRes.result, isSuccess:executeRunnerRes.result.resCode!==0});
             variableValList = variableValList.concat(executeRunnerRes.varVals);

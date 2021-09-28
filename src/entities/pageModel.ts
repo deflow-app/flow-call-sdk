@@ -16,7 +16,7 @@ export interface CronJob {
     key: string,
     name: string,
     cron: string,
-    scheduler: Array<TaskRunnerConf | JsCallConf>,
+    scheduler: Array<TaskRunnerConf | JsCallConf | TaskCallConf>,
     chainId: ChainId,
     latestCID?: string,
     src: Source,
@@ -53,6 +53,24 @@ export interface TaskRunnerConf {
     seq: number,
     isParalelle: boolean,
     exitOnError: boolean
+}
+
+export interface TaskCallConf {
+    seq: number,
+    isParalelle: boolean,
+    exitOnError: boolean,
+    taskCall:TaskCall[]
+}
+
+export interface TaskCall{
+    id:string,
+    name:string,
+    callCondition?: string,
+    contractKey: string,
+    inputsWhenRun?: InputWhenRun[],
+    safeMode?: boolean,
+    seq: number,
+    setVarList:SetJobVariableByTaskVariable[]
 }
 
 export interface JsCallConf{
@@ -212,8 +230,16 @@ export type TokenApprovalRes = {
     tokenDecimal: number
 }
 
-export const isTaskRunnerConf = (obj:TaskRunnerConf|JsCallConf):obj is TaskRunnerConf => {
+export const isTaskRunnerConf = (obj:TaskRunnerConf|JsCallConf|TaskCallConf):obj is TaskRunnerConf => {
     return (obj as TaskRunnerConf).taskRunnerKeys!==undefined;
+}
+
+export const isJsCallConf = (obj:TaskRunnerConf|JsCallConf|TaskCallConf):obj is JsCallConf => {
+    return (obj as JsCallConf).jsCall!==undefined;
+}
+
+export const isTaskCallConf = (obj:TaskRunnerConf|JsCallConf|TaskCallConf):obj is TaskCallConf => {
+    return (obj as TaskCallConf).taskCall!==undefined;
 }
 
 export const isSetJobVariableByEvent = (obj:SetJobVariable):obj is SetJobVariableByEvent => {
