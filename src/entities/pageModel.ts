@@ -63,7 +63,7 @@ export interface TaskCallConf {
 }
 
 export interface TaskCall{
-    id:string,
+    key:string,
     name:string,
     callCondition?: string,
     contractKey: string,
