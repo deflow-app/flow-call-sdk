@@ -28,7 +28,8 @@ export interface CronJob {
 export interface JobVariable{
     code:string,
     name:string,
-    value:any
+    value:any,
+    inputWhenRun:boolean
 }
 
 export interface SetJobVariable{
