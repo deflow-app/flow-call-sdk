@@ -14,21 +14,29 @@ export const executeTasks = async function (scheduler: Array<TaskRunnerConf|JsCa
     let rtnRes:Array<TaskExecuteResult> = [];
     let variableValList:Array<JobVariable> = jobVariables.filter(v=>v.value);
     for (let runnerConf of scheduler) {
+        let tmpVarValList = [];
         if(isTaskRunnerConf(runnerConf)){
             let executeRunnerRes = await executeTaskRunner(runnerConf, runners, tasks, jobVariables, wallet);
             rtnRes = rtnRes.concat(executeRunnerRes.results);
-            variableValList = variableValList.concat(executeRunnerRes.varVals);
+            tmpVarValList = executeRunnerRes.varVals;
             if(executeRunnerRes.isExit) break;
         }else if(isJsCallConf(runnerConf)){
             let executeRunnerRes = await executeJsRunner(runnerConf, variableValList, jobVariables, wallet)
             rtnRes = rtnRes.concat({...executeRunnerRes.result, isSuccess:executeRunnerRes.result.resCode!==0});
-            variableValList = variableValList.concat(executeRunnerRes.varVals);
+            tmpVarValList = executeRunnerRes.varVals;
             if(executeRunnerRes.isExit) break;
         }else if(isTaskCallConf(runnerConf)){
             let executeRunnerRes = await executeTaskCallRunner(runnerConf, tasks, variableValList, jobVariables, wallet)
             rtnRes = rtnRes.concat(executeRunnerRes.results);
-            variableValList = variableValList.concat(executeRunnerRes.varVals);
+            tmpVarValList = executeRunnerRes.varVals;
             if(executeRunnerRes.isExit) break;
+        }
+        for(let tmpVarVal of tmpVarValList){
+            if(variableValList.find(v=>v.code===tmpVarVal.code)){
+                variableValList.splice(variableValList.findIndex(v=>v.code===tmpVarVal.code), 1, tmpVarVal);
+            }else{
+                variableValList.push(tmpVarVal);
+            }
         }
     }
     return rtnRes;
