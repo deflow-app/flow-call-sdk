@@ -1,16 +1,18 @@
 import { TaskRunnerConf, JsCallConf, TaskRunner, SuperContract, TaskExecuteResult, JSExecuteResult, isTaskRunnerConf, JobVariable, 
-    SetJobVariableByTaskVariable, SetJobVariable, isSetJobVariableByEvent, SetJobVariableByEvent, SetJobVariableByReturnValue, TaskCallConf, isJsCallConf } from "../entities/pageModel";
+    SetJobVariableByTaskVariable, SetJobVariable, isSetJobVariableByEvent, SetJobVariableByEvent, SetJobVariableByReturnValue, 
+    TaskCallConf, isJsCallConf, isTaskCallConf, TaskCall } from "../entities/pageModel";
 import { VariableType } from "../core/constant";
-import { execute, executeJsCall } from "./TaskExecutor";
+import { execute, executeJsCall, executeTaskCall } from "./TaskExecutor";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
 
-export const executeTasks = async function (scheduler: Array<TaskRunnerConf|JsCallConf|TaskCallConf>, runners: TaskRunner[], 
+export const executeTasks = async function (scheduler: Array<TaskRunnerConf|JsCallConf|TaskCallConf>,  
                                             tasks: { key: string, task: SuperContract }[], 
-                                            wallet: Signer | Provider,  jobVariables?:Array<JobVariable>):Promise<Array<TaskExecuteResult>> {
+                                            wallet: Signer | Provider, runners?: TaskRunner[], 
+                                            jobVariables?:Array<JobVariable>):Promise<Array<TaskExecuteResult>> {
     let rtnRes:Array<TaskExecuteResult> = [];
-    let variableValList:Array<JobVariable> = []
+    let variableValList:Array<JobVariable> = jobVariables.filter(v=>v.value);
     for (let runnerConf of scheduler) {
         if(isTaskRunnerConf(runnerConf)){
             let executeRunnerRes = await executeTaskRunner(runnerConf, runners, tasks, jobVariables, wallet);
@@ -22,6 +24,11 @@ export const executeTasks = async function (scheduler: Array<TaskRunnerConf|JsCa
             rtnRes = rtnRes.concat({...executeRunnerRes.result, isSuccess:executeRunnerRes.result.resCode!==0});
             variableValList = variableValList.concat(executeRunnerRes.varVals);
             if(executeRunnerRes.isExit) break;
+        }else if(isTaskCallConf(runnerConf)){
+            let executeRunnerRes = await executeTaskCallRunner(runnerConf, tasks, variableValList, jobVariables, wallet)
+            rtnRes = rtnRes.concat(executeRunnerRes.results);
+            variableValList = variableValList.concat(executeRunnerRes.varVals);
+            if(executeRunnerRes.isExit) break;
         }
     }
     return rtnRes;
@@ -29,7 +36,7 @@ export const executeTasks = async function (scheduler: Array<TaskRunnerConf|JsCa
 
 export const executeTaskRunner = async (taskRunnerConf:TaskRunnerConf, runners: TaskRunner[], 
     tasks: { key: string, task: SuperContract }[], jobVariables:Array<JobVariable>,  
-    wallet: Signer | Provider):Promise<{isExit:boolean, results:Array<TaskExecuteResult>,varVals:Array<JobVariable>}> => {
+    wallet: Signer | Provider) : Promise<{isExit:boolean, results:Array<TaskExecuteResult>,varVals:Array<JobVariable>}> => {
     let executeResList:Array<TaskExecuteResult> = [];
     let varVals:Array<JobVariable> = [];
     if (taskRunnerConf.taskRunnerKeys) {
@@ -166,6 +173,81 @@ export const executeJsRunner = async (jsRunnerConf:JsCallConf, varValList: JobVa
     return {isExit:false, result:res, varVals:varVals};
 }
 
+export const executeTaskCallRunner = async (taskCallConf:TaskCallConf, tasks: { key: string, task: SuperContract }[], 
+                                            varValList: JobVariable[], jobVariables: JobVariable[], wallet: Signer | Provider)
+                                : Promise<{isExit:boolean, results:Array<TaskExecuteResult>,varVals:Array<JobVariable>}> => {
+    let executeResList:Array<TaskExecuteResult> = [];
+    let varVals:Array<JobVariable> = [];
+    if (taskCallConf.taskCall) {
+        let sortedTasks = taskCallConf.taskCall.sort((tc1, tc2) => {
+            return tc1.seq - tc2.seq;
+        })
+
+        if (taskCallConf.isParalelle) {
+            let promises: Array<Promise<TaskExecuteResult>> = []
+            for (let taskCall of sortedTasks) {
+                promises.push(doExecuteTaskCall(taskCall, tasks, varValList, wallet));
+            }
+            try {
+                let results = await Promise.allSettled(promises);
+                for(let res of results){
+                    if(res.status === "rejected"){
+                        executeResList.push({isSuccess:false, errMsg:res.reason});
+                    }else if(res.status === "fulfilled"){
+                        let taskExecuteResult:TaskExecuteResult = res.value;
+                        executeResList.push(taskExecuteResult);
+                        if(taskExecuteResult.isSuccess){
+                            let tc = taskCallConf.taskCall.find(v=>v.key===taskExecuteResult.runner.key);
+                            let tmpJobVars = setJobVarByTaskVar(res.value, tc.setVarList, jobVariables);
+                            for(let jobVar of tmpJobVars){
+                                if(varVals.find(v=>v.code===jobVar.code)){
+                                    varVals.splice(varVals.findIndex(v=>v.code===jobVar.code), 1, jobVar);
+                                }else{
+                                    varVals.push(jobVar);
+                                }
+                            }
+                        }
+                    }
+                }
+                const errorRes = results.find((res) => res.status === "rejected");
+                const fulfillResArr = results.filter((res) => res.status === "fulfilled");
+                const failFulfillRes = fulfillResArr.find((res) => !(res as PromiseFulfilledResult<TaskExecuteResult>).value.isSuccess);
+                if (errorRes || failFulfillRes) {
+                    // console.log("Fail to execute task");
+                    if (taskCallConf.exitOnError) {
+                        return {isExit:true,results:executeResList,varVals:varVals};
+                    }
+                } else {
+                    // console.log("Task execute successfully");
+                    
+                }
+            } catch (e) {
+                console.error(e);
+                return {isExit:true,results:executeResList,varVals:varVals};
+            }
+        } else {
+            for (let taskCall of sortedTasks) {
+                let res = await doExecuteTaskCall(taskCall, tasks, varValList, wallet);
+                executeResList.push(res);
+                if (!res.isSuccess && taskCallConf.exitOnError) {
+                    return {isExit:true,results:executeResList,varVals:varVals};
+                }else{
+                    let taskRunnerKey = taskCallConf.taskCall.find(v=>v.key===res.runner.key);
+                    let tmpJobVars = setJobVarByTaskVar(res, taskRunnerKey?.setVarList, jobVariables);
+                    for(let jobVar of tmpJobVars){
+                        if(varVals.find(v=>v.code===jobVar.code)){
+                            varVals.splice(varVals.findIndex(v=>v.code===jobVar.code), 1, jobVar);
+                        }else{
+                            varVals.push(jobVar);
+                        }
+                    }
+                }
+            }
+        }
+        return {isExit:false,results:executeResList,varVals:varVals};
+    }
+}
+
 export const doExecute = async function (runnerKey: string, runners: TaskRunner[], tasks: { key: string, task: SuperContract }[], 
                                         wallet: Signer | Provider): Promise<TaskExecuteResult> {
     let taskRunner: TaskRunner = runners.find(r => r.key === runnerKey);
@@ -179,6 +261,17 @@ export const doExecute = async function (runnerKey: string, runners: TaskRunner[
     } else {
         console.log(`The contract [${taskRunner.contractKey}] does not exist.`);
         return {isSuccess:false, runner:taskRunner, errMsg:`The contract [${taskRunner.contractKey}] does not exist.`};
+    }
+}
+
+export const doExecuteTaskCall = async function (taskCall:TaskCall, tasks: { key: string, task: SuperContract }[], 
+    varValList: JobVariable[], wallet: Signer | Provider): Promise<TaskExecuteResult> {
+    let task: SuperContract = tasks.find(t => t.key === taskCall.contractKey)?.task;
+    if (task) {
+        return await executeTaskCall(task, taskCall, varValList, wallet);
+    } else {
+        console.log(`The contract [${taskCall.contractKey}] does not exist.`);
+        return {isSuccess:false, runner:taskCall, errMsg:`The contract [${taskCall.contractKey}] does not exist.`};
     }
 }
 

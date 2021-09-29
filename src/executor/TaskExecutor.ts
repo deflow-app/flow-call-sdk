@@ -1,7 +1,7 @@
 import {TriggerType, ExternalCallInfo, CallType, CallInfo, SetVariableOpr, ParameterFromVariable} from "../entities/contractModel";
 import {SetVariableOperation as PostOpr, SuperCall, SuperContract, JsCall, SuperContractVariable, CallFunc, CallFuncParam, 
     TransactionReceiptEvent, TransactionEventInfo, InputWhenRun,TaskRunner, InputWhenRunType, TaskExecuteResult, JSExecuteResult,
-    JobVariable} from "../entities/pageModel";
+    JobVariable, TaskCall} from "../entities/pageModel";
 import { flowCall, flowCallSafe, javascriptCall, ChainId, CHAIN_CONFIG, CallFuncParamType, EmitEventType,
     ConstantNames, SpecialParamNameForInputWhenRun, VariableType, PARAMETER_ID_FOR_TARGET_CONTRACT, 
     PARAMETER_ID_FOR_SEND_ETH_VALUE, PARAMETER_ID_FOR_TOKEN_AMOUNT, getFlowCallABI} from "../core";
@@ -111,28 +111,8 @@ export async function execute(callInfoInput:SuperContract, wallet: Signer | Prov
 
 export async function executeJsCall(jsCall:JsCall, varValList:Array<JobVariable>, wallet: Signer | Provider):Promise<JSExecuteResult>{
     if(jsCall.callCondition){
-        let str = jsCall.callCondition;
-        console.log("js call condition before:", str)
-        let varNames = [];
-        if(/\{\w+\}/.test(str)){
-            let vars:Array<string>|null = str.match(/\{\w+\}/gi);
-            for(let v of vars){
-                let varNm = v.substring(1, v.indexOf('}'));
-                varNames.push(varNm);
-                str = str.replace(v, varNm);
-            }
-        }
-        console.log("js call condition after:", str)
-        const fn = compile(str);
-        let params:{[name:string]:any} = {};
-        for(let varNm of varNames){
-            let varVal = varValList.find(val=>val.name===varNm);
-            params[varNm]= varVal ? varVal.value: null;
-        }
-        console.log("params", params);
-        let isCall = fn(params);
-        console.log("isCall:", isCall);
-        if(!isCall){
+        let res = analyzeJsExp(jsCall.callCondition, varValList);
+        if(!res){
             return {resCode:2, jsCall:jsCall}; 
         }
     }
@@ -180,6 +160,101 @@ export async function executeJsCall(jsCall:JsCall, varValList:Array<JobVariable>
     }catch(e){
         return {resCode:0, jsCall:jsCall, errMsg: e.message};
     }
+}
+
+export async function executeTaskCall(task:SuperContract, taskCall:TaskCall, varValList: JobVariable[], wallet: Signer | Provider):Promise<TaskExecuteResult>{
+    if(task.calls){
+        let safeCall = taskCall.safeMode;
+        let externalVars = taskCall.inputsWhenRun || [];
+        let senderAddress = await (wallet as Signer).getAddress();
+        let callsForContract:CallInfo[] = [];
+        let postCallsForContract:SetVariableOpr[] = [];
+        
+        externalVars = setExternalVarByJobVar(externalVars, varValList);
+
+        let postCallsForContractWrapper:PostCallsForContractWrapper[] = assembleBeforeAll(task.setVariableOperations, externalVars, task.variables);
+
+        for(let call of task.calls){
+            // console.log(call);
+            
+            let {callData, paramsSet, callCondition, tokenAmount, targetContract, sendEthValue} = assembleCallInput(call, task.variables, task.chainId, senderAddress, externalVars);
+            callsForContract.push({
+                callType:call.callType,
+                seq: call.seq,
+                callCondition: callCondition,
+                targetContract: targetContract ? targetContract : '0x0000000000000000000000000000000000000000',
+                callData: callData,
+                sendEthValue: sendEthValue ? sendEthValue : "0",
+                variableParameters: paramsSet,
+                returnValuesCount: call.callFunc && call.callFunc.returnValuesCount ? call.callFunc.returnValuesCount : 0,
+                tokenAmount: tokenAmount
+            })
+        }
+
+        let postOperates:PostOpr[] = task.setVariableOperations;
+        for(let i = 0; i < postOperates.length; i ++){
+            let postOpr = postOperates[i];
+            let trid:number = -1;
+            trid = getTridFromCalls(postOpr.triggerId, task.calls);
+            if(trid >= 0 && postOpr.type === TriggerType.afterCall){
+                postCallsForContractWrapper = assemblePostCall(trid, postOpr, task.variables, postCallsForContractWrapper);
+                postCallsForContractWrapper = assembleAfterSetVarOprs(postCallsForContractWrapper, postOperates, task.variables);
+            }
+        }
+
+        postCallsForContract = postCallsForContractWrapper.map(wrapper=>{
+            return wrapper.aftSetVarOpr;
+        })
+
+        let tokenAddrs:Array<string> = [];
+        if(task.approveTokens){
+            tokenAddrs = task.approveTokens.map(t=>{
+                return t.address;
+            })
+        }
+        let transRes;
+        // console.log("callsForContract", callsForContract, "postCallsForContract", postCallsForContract);
+        let sendEthValue="0";
+        const input=externalVars.find(v=>v.inputWhenRunType==InputWhenRunType.sendEthToFlowCall);
+        if(input){
+            sendEthValue=input.value;
+        }
+        try{
+            if(safeCall){
+                transRes = await flowCallSafe(callsForContract, task.variables.length, postCallsForContract, wallet, task.chainId, sendEthValue, tokenAddrs);
+            }else{
+                transRes = await flowCall(callsForContract, task.variables.length, postCallsForContract, wallet, task.chainId,sendEthValue);
+            }
+            return {isSuccess:true, task:task, runner:taskCall, reciept:transRes, 
+                events:analyzeCallEvents(task.calls.map(ca=>{return {contractAddr:ca.contractAddr, abiInfo:ca.abiInfo}}), transRes)};
+        }catch(e2){
+            // console.error(e2);
+            let reciept= e2;
+            let message=e2.message;
+            if (e2.code == -32603) {
+                //Internal JSON-RPC error
+                try{
+                    flowCallInterface.decodeFunctionResult("flowCall",e2.data.data);
+                }catch(e3){
+                    reciept=e3;
+                    if(e3.errorName==="ExternalCallError"){
+                        const callId=BigNumber.from(e3.errorArgs[0]).toNumber();
+                        message=`Got error when invoking [${task?.calls[callId]?.name}] (id=${callId})`;
+                    }
+                    else
+                        message=e3.reason;
+                }
+            }
+
+            // console.error("Error decoded: ",reciept);
+            return {isSuccess:false, task:task, runner:taskCall, reciept:reciept, errMsg: message};
+        }
+    }
+    return {isSuccess:false, task:task, runner:taskCall, errMsg:'Invalid task'};
+}
+
+function setExternalVarByJobVar(externalVars:InputWhenRun[], varValList:JobVariable[]):InputWhenRun[]{
+    return externalVars.map(v=>{return {...v, value:analyzeJsExp(v.value, varValList)}});
 }
 
 function assembleCallInput(call:SuperCall, variables:SuperContractVariable[], chainId:ChainId, senderAddr:string, externalVars:InputWhenRun[])
@@ -397,6 +472,31 @@ function assembleCallFuncParamVal(paramVal:any):any{
         }
     }
     return paramVal;
+}
+
+function analyzeJsExp(exp:string, varValList:JobVariable[]):any{
+    console.log("js call condition before:", exp)
+    let varNames = [];
+    if(/\{\w+\}/.test(exp)){
+        let vars:Array<string>|null = exp.match(/\{\w+\}/gi);
+        for(let v of vars){
+            let varNm = v.substring(1, v.indexOf('}'));
+            varNames.push(varNm);
+            exp = exp.replace(v, varNm);
+        }
+        console.log("js call condition after:", exp)
+        const fn = compile(exp);
+        let params:{[name:string]:any} = {};
+        for(let varNm of varNames){
+            let varVal = varValList.find(val=>val.name===varNm);
+            params[varNm]= varVal ? varVal.value: null;
+        }
+        console.log("params", params);
+        let res = fn(params);
+        console.log("res:", res);
+        return res;
+    }
+    return exp;
 }
 
 function getVarId(varNmOrCd:string, variables:SuperContractVariable[], byName=true):number{

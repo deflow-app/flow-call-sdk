@@ -205,7 +205,7 @@ export interface TokenApproval {
 export interface TaskExecuteResult {
     isSuccess: boolean,
     task?: SuperContract,
-    runner?: TaskRunner,
+    runner?: TaskRunner | TaskCall,
     errMsg?: string,
     reciept?: any,
     events?: TransactionEventInfo[]
