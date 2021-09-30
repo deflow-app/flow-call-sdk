@@ -12,7 +12,7 @@ export default class JobWorker implements Worker{
     private readonly taskRunnerConfs: Array<TaskRunnerConf|JsCallConf|TaskCallConf>;
     private readonly runners: TaskRunner[];
     private readonly tasks: { key: string, task: SuperContract }[];
-    private readonly variables : JobVariable[];
+    public variables : JobVariable[];
 
     public constructor(taskRunnerConfs:Array<TaskRunnerConf|JsCallConf|TaskCallConf>, runners:TaskRunner[], tasks:{ key: string, task: SuperContract }[],
         variables:JobVariable[]){
