@@ -5,12 +5,17 @@ import { PubType, ChainId } from "../core";
 import JobWorker from "../entities/JobWorker";
 import TaskWorker from "../entities/TaskWorker";
 
-export const executeJobByCID = async (cid:string, externalVars?:Array<JobVariable>):Promise<{cron:string,chainId:ChainId,worker:Worker}> => {
+export const fetchByCID = async (cid:string,type:PubType):Promise<any>=>{
     let content = await readFileDecrypt(cid);
     if(!content) throw new Error("Got empty content!");
     let pubObj:PubObj = JSON.parse(content);
-    if(pubObj.type !== PubType.JOB) throw new Error("Got wrong type!");
+    if(pubObj.type !== type) throw new Error("Got wrong type!");
     let job:CronJob = pubObj.data as CronJob;
+    return job;
+}
+
+export const executeJobByCID = async (cid:string, externalVars?:Array<JobVariable>):Promise<{cron:string,chainId:ChainId,worker:Worker}> => {
+    let job:CronJob = await fetchByCID(cid,PubType.JOB);
     let initedVars = job.variables.map(v=>{
         return {...v, value:externalVars?.find(ev=>ev.code===v.code && v.inputWhenRun)?.value}
     })
@@ -18,10 +23,6 @@ export const executeJobByCID = async (cid:string, externalVars?:Array<JobVariabl
 }
 
 export const executeTaskByCID = async (cid:string, runner:TaskRunner):Promise<{chainId:ChainId, worker:Worker}> => {
-    let content = await readFileDecrypt(cid);
-    if(!content) throw new Error("Got empty content!");
-    let pubObj:PubObj = JSON.parse(content);
-    if(pubObj.type !== PubType.TASK) throw new Error("Got wrong type!");
-    let task:SuperContract = pubObj.data as SuperContract;
+    let task:SuperContract = await fetchByCID(cid,PubType.TASK);
     return {chainId:task.chainId, worker:new TaskWorker(task, runner)};
 }
