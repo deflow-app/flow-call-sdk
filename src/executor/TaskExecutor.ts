@@ -1,7 +1,7 @@
 import {TriggerType, ExternalCallInfo, CallType, CallInfo, SetVariableOpr, ParameterFromVariable} from "../entities/contractModel";
 import {SetVariableOperation as PostOpr, SuperCall, SuperContract, JsCall, SuperContractVariable, CallFunc, CallFuncParam, 
     TransactionReceiptEvent, TransactionEventInfo, InputWhenRun,TaskRunner, InputWhenRunType, TaskExecuteResult, JSExecuteResult,
-    JobVariable, TaskCall} from "../entities/pageModel";
+    JobVariable, TaskCall, SubType} from "../entities/pageModel";
 import { flowCall, flowCallSafe, javascriptCall, ChainId, CHAIN_CONFIG, CallFuncParamType, EmitEventType,
     ConstantNames, SpecialParamNameForInputWhenRun, VariableType, PARAMETER_ID_FOR_TARGET_CONTRACT, 
     PARAMETER_ID_FOR_SEND_ETH_VALUE, PARAMETER_ID_FOR_TOKEN_AMOUNT, getFlowCallABI} from "../core";
@@ -318,7 +318,11 @@ function assembleCallInput(call:SuperCall, variables:SuperContractVariable[], ch
                 }
             }
         }
-        callData = abiEncode(call.abiInfo, callFunc.name, callFuncParamVals);
+        if(call.subType === SubType.sendETH){
+            callData = "";
+        }else{
+            callData = abiEncode(call.abiInfo, callFunc?.name, callFuncParamVals);
+        }
         callCondition = prepareExp(transformVar(call.callCondition, variables));
     }else if(CallType.safeReceive === call.callType){
         if(call.tokenAmount === '<'+ConstantNames.inputWhenRun+'>'){
